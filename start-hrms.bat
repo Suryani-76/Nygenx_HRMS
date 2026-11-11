@@ -1,62 +1,40 @@
 @echo off
-setlocal EnableExtensions EnableDelayedExpansion
-title OKLUT HRMS Development Server
-color 0A
-
+title Oklut HRMS Development Server
 echo ========================================================
-echo               OKLUT HRMS - STARTING SERVER              
+echo               STARTING OKLUT HRMS SERVER
 echo ========================================================
 echo.
 
-set "SCRIPT_DIR=%~dp0"
-set "APP_DIR=%SCRIPT_DIR%HRMS_app-main\hrms-app"
+:: Move into the hrms-app folder
+cd /d "%~dp0HRMS_app-main\hrms-app" 2>nul || cd /d "%~dp0hrms-app" 2>nul
 
-if exist "%APP_DIR%\package.json" goto FOUND_APP
-
-set "APP_DIR=%SCRIPT_DIR%hrms-app"
-if exist "%APP_DIR%\package.json" goto FOUND_APP
-
-set "APP_DIR=%SCRIPT_DIR%"
-if exist "%APP_DIR%\package.json" goto FOUND_APP
-
-color 0C
-echo [ERROR] Could not find package.json in %APP_DIR%
-pause
-exit /b 1
-
-:FOUND_APP
-cd /d "%APP_DIR%"
-echo Working Directory: %CD%
+echo Working Directory: %cd%
 echo.
 
+:: Check Node.js
 where node >nul 2>nul
-if %ERRORLEVEL% neq 0 goto NO_NODE
-
-echo Found Node.js:
-call node -v
-echo.
-
-echo Starting Vite dev server on http://localhost:5174/ ...
-start "" "http://localhost:5174/"
-
-call npm run dev
-
-if %ERRORLEVEL% neq 0 (
+if %errorlevel% neq 0 (
+    echo [ERROR] Node.js is not installed or not in system PATH!
+    echo Please install Node.js (v18+) from: https://nodejs.org/
     echo.
-    echo [Fallback] Starting direct Vite runner...
-    call node node_modules\vite\bin\vite.js
+    pause
+    exit /b 1
 )
 
-pause
-exit /b 0
+echo [1/2] Launching browser to http://localhost:5174 ...
+start http://localhost:5174
 
-:NO_NODE
-color 0C
+echo [2/2] Running 'npm run dev' ...
 echo.
-echo [ERROR] Node.js is not detected in your PATH.
-echo If Node is installed, please run the following in your Antigravity IDE terminal:
-echo   cd HRMS_app-main\hrms-app
-echo   npm run dev
+echo ========================================================
+echo  Server is starting! Keep this window OPEN while testing.
+echo  Press Ctrl + C to stop the server when done.
+echo ========================================================
 echo.
-pause
-exit /b 1
+npm run dev
+
+if %errorlevel% neq 0 (
+    echo.
+    echo Server stopped with error code %errorlevel%.
+    pause
+)
